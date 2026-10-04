@@ -86,6 +86,8 @@ function AppInner() {
   const [path, setPath] = useState(() => parsePath(window.location.pathname))
   const [activeMember, setActiveMember] = useState(null)
   const [anchorElement, setAnchorElement] = useState(null)
+  const [dancingMemberId, setDancingMemberId] = useState(null)
+  const [danceToken, setDanceToken] = useState(0)
   const lastTriggerRef = useRef(null)
   const previousSceneRef = useRef('cinematic')
 
@@ -108,6 +110,12 @@ function AppInner() {
     setAnchorElement(trigger)
     setActiveMember(member)
   }, [activeMember, dismissIntroduction])
+
+  const makeDance = useCallback((member) => {
+    setDancingMemberId(member.id)
+    setDanceToken((token) => token + 1)
+    window.setTimeout(() => setDancingMemberId((id) => (id === member.id ? null : id)), 2200)
+  }, [])
 
   const viewProfile = useCallback((member) => {
     previousSceneRef.current = path.view === '3d' ? '3d' : 'cinematic'
@@ -238,11 +246,11 @@ function AppInner() {
       {path.view === '3d' ? (
         <StageErrorBoundary key="three-scene" fallback={<CinematicStage activeMember={activeMember} onSelect={selectMember} onDismiss={dismissIntroduction} />}>
           <Suspense fallback={<SceneLoading />}>
-            <ThreeStage activeMember={activeMember} onSelect={selectMember} onDismiss={dismissIntroduction} />
+            <ThreeStage activeMember={activeMember} onSelect={selectMember} onDismiss={dismissIntroduction} dancingMemberId={dancingMemberId} danceToken={danceToken} />
           </Suspense>
         </StageErrorBoundary>
       ) : (
-        <CinematicStage activeMember={activeMember} onSelect={selectMember} onDismiss={dismissIntroduction} />
+        <CinematicStage activeMember={activeMember} onSelect={selectMember} onDismiss={dismissIntroduction} dancingMemberId={dancingMemberId} danceToken={danceToken} />
       )}
 
       {activeMember && anchorElement && (
@@ -252,6 +260,7 @@ function AppInner() {
           anchorElement={anchorElement}
           onDismiss={dismissIntroduction}
           onViewProfile={viewProfile}
+          onDance={makeDance}
         />
       )}
     </main>

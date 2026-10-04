@@ -330,7 +330,7 @@ function IntegratedDetails({ member }) {
   return null
 }
 
-export default function MechFigure({ member, selected, onSelect }) {
+export default function MechFigure({ member, selected, onSelect, dancing, danceToken }) {
   const uid = useId().replace(/:/g, '')
   const plateGradient = `plate-${uid}`
   const coreGradient = `core-${uid}`
@@ -350,7 +350,7 @@ export default function MechFigure({ member, selected, onSelect }) {
 
   return (
     <button
-      className={`mech-figure mech-${member.profile} ${selected ? 'is-selected' : ''}`}
+      className={`mech-figure mech-${member.profile} ${selected ? 'is-selected' : ''} ${dancing ? 'is-dancing' : ''} dance-${danceToken}`}
       style={style}
       type="button"
       data-robot-trigger

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Environment, Html, Lightformer, OrbitControls, Text } from '@react-three/drei'
 import * as THREE from 'three'
@@ -19,7 +19,7 @@ function webglIsAvailable() {
   }
 }
 
-function MechModel({ member, selected, onSelect }) {
+function MechModel({ member, selected, onSelect, dancing, danceToken }) {
   const group = useRef(null)
   const trigger = useRef(null)
   const baseY = member.world[1]
@@ -27,13 +27,23 @@ function MechModel({ member, selected, onSelect }) {
   const plate = new THREE.Color(member.plate)
   const trim = new THREE.Color(member.trim)
   const shape = getShape(member.profile)
+  const danceStartedAt = useRef(0)
+
+  useEffect(() => {
+    if (dancing) danceStartedAt.current = performance.now() / 1000
+  }, [danceToken, dancing])
 
   useFrame((state) => {
     if (!group.current) return
     const time = state.clock.getElapsedTime()
     const pulse = 1 + Math.sin(time * 2 + member.world[0]) * 0.035
-    group.current.position.y = baseY + Math.sin(time * 1.15 + member.world[0]) * 0.045 + (selected ? 0.12 : 0)
+    const danceTime = dancing ? time - danceStartedAt.current : 0
+    const danceSway = dancing ? Math.sin(danceTime * 9) * 0.16 : 0
+    const danceHop = dancing ? Math.max(0, Math.sin(danceTime * 9)) * 0.18 : 0
+    group.current.position.x = member.world[0] + danceSway
+    group.current.position.y = baseY + Math.sin(time * 1.15 + member.world[0]) * 0.045 + (selected ? 0.12 : 0) + danceHop
     group.current.rotation.y = Math.sin(time * 0.38 + member.world[0]) * 0.03 + (selected ? Math.sin(time * 2.5) * 0.035 : 0)
+    group.current.rotation.z = dancing ? Math.sin(danceTime * 9) * 0.1 : 0
     group.current.scale.setScalar((member.position.scale * 1.25) * (selected ? 1.06 : 1) * pulse)
   })
 
@@ -125,7 +135,7 @@ function SelectionRing({ member }) {
   )
 }
 
-function WebGLWorld({ activeMember, onSelect }) {
+function WebGLWorld({ activeMember, onSelect, dancingMemberId, danceToken }) {
   return <>
     <color attach="background" args={['#07111a']} />
     <fog attach="fog" args={['#07111a', 7, 22]} />
@@ -139,7 +149,7 @@ function WebGLWorld({ activeMember, onSelect }) {
     </mesh>
     <gridHelper args={[24, 24, '#2f89a9', '#152b38']} position={[0, -0.735, 0]} />
     {activeMember && <SelectionRing member={activeMember} />}
-    {family.map((member) => <MechModel key={member.id} member={member} selected={activeMember?.id === member.id} onSelect={onSelect} />)}
+    {family.map((member) => <MechModel key={member.id} member={member} selected={activeMember?.id === member.id} dancing={dancingMemberId === member.id} danceToken={danceToken} onSelect={onSelect} />)}
     <Environment resolution={128} frames={1}>
       <Lightformer color="#cde6ff" intensity={2.4} position={[4, 5, 3]} scale={[5, 5, 1]} />
       <Lightformer color="#ffac69" intensity={2} position={[-5, 2, 1]} scale={[4, 3, 1]} />
@@ -149,7 +159,7 @@ function WebGLWorld({ activeMember, onSelect }) {
   </>
 }
 
-export default function ThreeStage({ activeMember, onSelect, onDismiss }) {
+export default function ThreeStage({ activeMember, onSelect, onDismiss, dancingMemberId, danceToken }) {
   const [available] = useState(webglIsAvailable)
 
   if (!available) {
@@ -165,7 +175,7 @@ export default function ThreeStage({ activeMember, onSelect, onDismiss }) {
         gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
         onPointerMissed={onDismiss}
       >
-        <WebGLWorld activeMember={activeMember} onSelect={onSelect} />
+        <WebGLWorld activeMember={activeMember} onSelect={onSelect} dancingMemberId={dancingMemberId} danceToken={danceToken} />
       </Canvas>
       <div className="webgl-scanlines" aria-hidden="true" />
     </section>

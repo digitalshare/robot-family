@@ -4,7 +4,7 @@ import MechFigure from './MechFigure'
 
 const motes = Array.from({ length: 14 }, (_, index) => index)
 
-export default function CinematicStage({ activeMember, onSelect, onDismiss }) {
+export default function CinematicStage({ activeMember, onSelect, onDismiss, dancingMemberId, danceToken }) {
   const stageRef = useRef(null)
   const animationFrame = useRef(null)
 
@@ -49,6 +49,8 @@ export default function CinematicStage({ activeMember, onSelect, onDismiss }) {
               key={member.id}
               member={member}
               selected={activeMember?.id === member.id}
+              dancing={dancingMemberId === member.id}
+              danceToken={danceToken}
               onSelect={onSelect}
             />
           ))}

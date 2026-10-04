@@ -13,7 +13,7 @@ const roleLabels = {
   delivery: 'Delivery robot',
 }
 
-export default function SpeechBubble({ member, anchorElement, onDismiss, onViewProfile }) {
+export default function SpeechBubble({ member, anchorElement, onDismiss, onViewProfile, onDance }) {
   const bubbleRef = useRef(null)
   const [placement, setPlacement] = useState({ left: -999, top: -999, tail: 50, below: false, ready: false })
   const [dialogueIndex, setDialogueIndex] = useState(0)
@@ -100,6 +100,9 @@ export default function SpeechBubble({ member, anchorElement, onDismiss, onViewP
       <div className="bubble-traits" aria-label={`${member.name}'s traits`}>
         {member.traits.map((trait) => <span key={trait}>{trait}</span>)}
       </div>
+      <button className="bubble-dance" type="button" onClick={() => onDance?.(member)}>
+        Make them dance
+      </button>
       <button
         className="bubble-profile"
         type="button"
